@@ -19,6 +19,15 @@ import type {
 import { matchDonation } from "@/lib/domain/matcher";
 import { SEED_RECIPIENTS } from "@/lib/demo/recipients";
 import { isConvexAvailable } from "@/lib/convex/client";
+import { sampleAnalysis } from "@/lib/cerebras/fixtures";
+import {
+  type AgentTrace,
+  type TraceEvent,
+  type TraceStepName,
+  createEmptyTrace,
+  pushTraceEvent,
+  updateTraceEvent,
+} from "@/lib/agent-trace/types";
 
 export type WorkflowStep =
   | "idle"
@@ -49,6 +58,7 @@ export interface WorkflowState {
   transcript: string | null;
   analysis: Analysis | null;
   trace: TraceInfo | null;
+  agentTrace: AgentTrace;
   error: string | null;
   errorCode: string | null;
   canUseFallback: boolean;
@@ -113,7 +123,9 @@ type Action =
   | { type: "CONVEX_AVAILABILITY_CHECK"; available: boolean }
   | { type: "SET_HAS_AUDIO_ASSET"; value: boolean }
   | { type: "RESET" }
-  | { type: "GO_TO_STEP"; step: WorkflowStep };
+  | { type: "GO_TO_STEP"; step: WorkflowStep }
+  | { type: "PUSH_TRACE_EVENT"; event: Omit<TraceEvent, "id" | "timestamp"> }
+  | { type: "UPDATE_TRACE_EVENT"; step: TraceStepName; updates: Partial<Omit<TraceEvent, "id" | "step" | "timestamp">>; };
 
 const DEFAULT_CONFIRMATIONS: Confirmations = {
   prepTimeLogged: false,
@@ -232,13 +244,14 @@ function buildDonationDraft(state: WorkflowState): DonationDraft {
   };
 }
 
-const initialState: WorkflowState = {
+export const initialState: WorkflowState = {
   step: "idle",
   imageBase64: null,
   imageMimeType: "image/jpeg",
   transcript: null,
   analysis: null,
   trace: null,
+  agentTrace: createEmptyTrace(),
   error: null,
   errorCode: null,
   canUseFallback: false,
@@ -259,7 +272,7 @@ const initialState: WorkflowState = {
   hasAudioAsset: false,
 };
 
-function workflowReducer(state: WorkflowState, action: Action): WorkflowState {
+export function workflowReducer(state: WorkflowState, action: Action): WorkflowState {
   switch (action.type) {
     case "SET_IMAGE":
       return { ...state, imageBase64: action.base64, imageMimeType: action.mimeType, step: "capturing" };
@@ -268,19 +281,52 @@ function workflowReducer(state: WorkflowState, action: Action): WorkflowState {
       return { ...state, transcript: action.transcript };
 
     case "START_ANALYSIS":
-      return { ...state, step: "analyzing", error: null, errorCode: null };
+      return {
+        ...state,
+        step: "analyzing",
+        error: null,
+        errorCode: null,
+        agentTrace: pushTraceEvent(state.agentTrace, {
+          step: "analyze_food",
+          actor: "gemma",
+          status: "pending",
+          label: "Analyze food image with Gemma",
+          input: {
+            hasTranscript: !!state.transcript,
+            mimeType: state.imageMimeType,
+          },
+        }),
+      };
 
     case "ANALYSIS_SUCCESS": {
       const a = action.result.analysis;
+      const foodItem = a.foodItems[0];
+      const retryNote = action.result.trace?.retry
+        ? "Gemma returned an invalid response on first attempt; repaired on retry."
+        : undefined;
+      const updatedTrace = updateTraceEvent(state.agentTrace, "analyze_food", {
+        status: "success",
+        output: {
+          items: a.foodItems.map((item) => item.name),
+          category: foodItem?.category,
+          temperature: a.temperatureState,
+          packaging: a.packagingState,
+          model: action.result.trace?.model,
+          timingMs: action.result.trace?.timingMs,
+          nativeJsonSchema: action.result.trace?.nativeJsonSchema,
+        },
+        message: retryNote,
+      });
       return {
         ...state,
         step: "editing",
         analysis: a,
         trace: action.result.trace,
+        agentTrace: updatedTrace,
         error: null,
         errorCode: null,
-        foodCategory: a.foodItems[0]?.category
-          ? mapAnalysisCategory(a.foodItems[0].category)
+        foodCategory: foodItem?.category
+          ? mapAnalysisCategory(foodItem.category)
           : "cold_prepared_food",
         temperatureState: mapAnalysisTemperature(a.temperatureState),
         packagingState: mapAnalysisPackaging(a.packagingState),
@@ -296,11 +342,30 @@ function workflowReducer(state: WorkflowState, action: Action): WorkflowState {
         error: action.error,
         errorCode: action.errorCode,
         canUseFallback: action.canUseFallback,
+        agentTrace: updateTraceEvent(state.agentTrace, "analyze_food", {
+          status: action.canUseFallback ? "retry" : "failure",
+          message: action.canUseFallback
+            ? `Gemma analysis failed: ${action.error}. Demo fallback available.`
+            : action.error,
+        }),
       };
 
     case "USE_FALLBACK": {
-      const { sampleAnalysis } = require("@/lib/cerebras/fixtures");
       const sample = sampleAnalysis as Analysis;
+      const fallbackTrace = pushTraceEvent(state.agentTrace, {
+        step: "analyze_food",
+        actor: "fallback",
+        status: "success",
+        label: "Analyze food image (demo fallback)",
+        input: { source: "sample fixture" },
+        output: {
+          items: sample.foodItems.map((item) => item.name),
+          category: sample.foodItems[0]?.category,
+          temperature: sample.temperatureState,
+          packaging: sample.packagingState,
+        },
+        message: "Live analysis unavailable; using demo sample data",
+      });
       return {
         ...state,
         step: "editing",
@@ -311,6 +376,7 @@ function workflowReducer(state: WorkflowState, action: Action): WorkflowState {
           retry: false,
           nativeJsonSchema: false,
         },
+        agentTrace: fallbackTrace,
         error: null,
         errorCode: null,
         foodCategory: "cold_prepared_food",
@@ -357,15 +423,57 @@ function workflowReducer(state: WorkflowState, action: Action): WorkflowState {
       if (isPickupExpired(state.pickupBy)) {
         return { ...state, step: "expired" };
       }
-      return { ...state, step: "matching", convexError: null };
+      const confirmed = Object.values(state.confirmations).every(Boolean);
+      const safetyTrace = pushTraceEvent(state.agentTrace, {
+        step: "check_safety",
+        actor: "app",
+        status: confirmed ? "success" : "failure",
+        label: "Check safety confirmations",
+        input: { confirmations: state.confirmations },
+        output: { passed: confirmed },
+        message: confirmed
+          ? "All donor safety confirmations verified"
+          : "Safety confirmations incomplete",
+      });
+      const rankTrace = pushTraceEvent(safetyTrace, {
+        step: "rank_recipients",
+        actor: "app",
+        status: "pending",
+        label: "Rank recipients deterministically",
+        input: {
+          foodCategory: state.foodCategory,
+          temperature: state.temperatureState,
+          packaging: state.packagingState,
+          zipCode: state.donorZipCode,
+          pickupBy: state.pickupBy,
+        },
+      });
+      return {
+        ...state,
+        step: "matching",
+        convexError: null,
+        agentTrace: rankTrace,
+      };
     }
 
     case "MATCH_COMPLETE": {
+      const compatible = action.results.some((r) => r.compatible);
+      const topRecipient = action.results.find((r) => r.compatible)?.recipient.name;
       return {
         ...state,
-        step: action.results.some((r) => r.compatible) ? "results" : "no_match",
+        step: compatible ? "results" : "no_match",
         matchResults: action.results,
         donationId: action.donationId,
+        agentTrace: updateTraceEvent(state.agentTrace, "rank_recipients", {
+          status: compatible ? "success" : "failure",
+          output: {
+            compatibleCount: action.results.filter((r) => r.compatible).length,
+            topRecipient,
+          },
+          message: compatible
+            ? `Matched with ${topRecipient ?? "recipient"}`
+            : "No compatible recipients found",
+        }),
       };
     }
 
@@ -376,7 +484,19 @@ function workflowReducer(state: WorkflowState, action: Action): WorkflowState {
       return { ...state, convexError: null };
 
     case "CONVEX_OFFER_CREATED":
-      return { ...state, offerToken: action.token, convexError: null };
+      return {
+        ...state,
+        offerToken: action.token,
+        convexError: null,
+        agentTrace: pushTraceEvent(state.agentTrace, {
+          step: "create_offer",
+          actor: "convex",
+          status: "success",
+          label: "Create recipient offer",
+          output: { tokenPrefix: action.token.slice(0, 8) },
+          message: "Offer persisted and token generated",
+        }),
+      };
 
     case "CONVEX_ERROR":
       return { ...state, convexError: action.error };
@@ -392,6 +512,18 @@ function workflowReducer(state: WorkflowState, action: Action): WorkflowState {
 
     case "GO_TO_STEP":
       return { ...state, step: action.step };
+
+    case "PUSH_TRACE_EVENT":
+      return {
+        ...state,
+        agentTrace: pushTraceEvent(state.agentTrace, action.event),
+      };
+
+    case "UPDATE_TRACE_EVENT":
+      return {
+        ...state,
+        agentTrace: updateTraceEvent(state.agentTrace, action.step, action.updates),
+      };
 
     default:
       return state;
@@ -508,6 +640,17 @@ export function useDonationWorkflow() {
 
     if (!convexAvailableRef.current || !mutations) {
       dispatch({ type: "CONVEX_ERROR", error: "Demo mode - donation not saved to server" });
+      dispatch({
+        type: "PUSH_TRACE_EVENT",
+        event: {
+          step: "create_offer",
+          actor: "fallback",
+          status: "success",
+          label: "Create recipient offer (demo)",
+          output: { mode: "demo" },
+          message: "Demo mode - offer generated locally, not persisted to Convex",
+        },
+      });
       return;
     }
 

@@ -77,9 +77,20 @@ export function useImageCapture() {
   }, [captureFromFile]);
 
   const loadSampleImage = useCallback(async (): Promise<ImageCaptureResult> => {
-    const res = await fetch("/demo/wrapped-sandwiches.png");
-    const blob = await res.blob();
-    return fileToBase64(new File([blob], "sample.png", { type: "image/png" }));
+    try {
+      const res = await fetch("/demo/wrapped-sandwiches.webp");
+      if (!res.ok) throw new Error("sample image not found");
+      const blob = await res.blob();
+      return fileToBase64(new File([blob], "sample.webp", { type: "image/webp" }));
+    } catch {
+      // Fallback to a small orange SVG placeholder so the demo workflow can
+      // continue even if the sample image asset is missing.
+      return {
+        base64:
+          "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI0ZGNkQzQSIvPjwvc3ZnPg==",
+        mimeType: "image/svg+xml",
+      };
+    }
   }, [fileToBase64]);
 
   return {

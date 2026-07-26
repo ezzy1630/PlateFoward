@@ -83,6 +83,10 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+@utility safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
 @utility btn-base {
   display: inline-flex;
   align-items: center;
@@ -129,6 +133,29 @@
       font-size: 0.75rem;
       line-height: 1.4;
     }
+  }
+
+  .pickup-summary-print {
+    @media print {
+      font-family: var(--font-body);
+      color: var(--color-navy);
+    }
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .pickup-summary-print,
+  .pickup-summary-print * {
+    visibility: visible;
+  }
+  .pickup-summary-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
   }
 }
 

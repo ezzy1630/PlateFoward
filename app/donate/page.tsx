@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowLeft } from "@phosphor-icons/react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { useDonationWorkflow } from "@/hooks/useDonationWorkflow";
-import type { ConvexMutations } from "@/hooks/useDonationWorkflow";
+import type { ConvexMutations, WorkflowStep } from "@/hooks/useDonationWorkflow";
 import { useImageCapture } from "@/hooks/useImageCapture";
 import { convexClient } from "@/lib/convex/client";
 import { useMutation } from "convex/react";
@@ -17,11 +18,37 @@ import { CaptureStep } from "@/components/workflow/capture-step";
 import { AnalysisStep } from "@/components/workflow/analysis-step";
 import { ConfirmationStep } from "@/components/workflow/confirmation-step";
 import { MatchingStep } from "@/components/workflow/matching-step";
+import { DonateProgress } from "@/components/workflow/donate-progress";
 
 const ResultsStep = dynamic(
   () => import("@/components/workflow/results-step").then((m) => ({ default: m.ResultsStep })),
   { ssr: false },
 );
+
+const STEP_ORDER: WorkflowStep[] = [
+  "idle",
+  "capturing",
+  "analyzing",
+  "editing",
+  "confirming",
+  "matching",
+  "results",
+];
+
+function stepIndex(step: WorkflowStep): number {
+  const idx = STEP_ORDER.indexOf(step);
+  return idx < 0 ? 0 : idx;
+}
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+function useStepDirection(step: WorkflowStep): number {
+  const prevRef = useRef<number>(0);
+  const idx = stepIndex(step);
+  const dir = idx >= prevRef.current ? 1 : -1;
+  prevRef.current = idx;
+  return dir;
+}
 
 function DonatePageContent({ mutations }: { mutations?: ConvexMutations }) {
   const {
@@ -102,10 +129,27 @@ function DonatePageContent({ mutations }: { mutations?: ConvexMutations }) {
   }, [goToStep]);
 
   const isAnalyzing = state.step === "analyzing";
+  const direction = useStepDirection(state.step);
+  const reduce = useReducedMotion();
+  const stepKey =
+    state.step === "error" || state.step === "expired" || state.step === "no_match"
+      ? state.step
+      : STEP_ORDER.includes(state.step)
+        ? state.step
+        : "idle";
+
+  const enterVariant = (dir: number) =>
+    reduce
+      ? { opacity: 1, x: 0 }
+      : { opacity: 0, x: dir >= 0 ? 24 : -24 };
+  const exitVariant = (dir: number) =>
+    reduce
+      ? { opacity: 0, x: 0 }
+      : { opacity: 0, x: dir >= 0 ? -24 : 24 };
 
   return (
     <div className="min-h-dvh bg-fog safe-area-inset">
-      <header className="sticky top-0 z-20 border-b border-navy-100 bg-fog/90 backdrop-blur-md">
+      <header className="relative sticky top-0 z-20 border-b border-navy-100 bg-fog/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-3">
           <Link
             href="/"
@@ -117,11 +161,27 @@ function DonatePageContent({ mutations }: { mutations?: ConvexMutations }) {
           </Link>
           <Badge variant="demo">Demo</Badge>
         </div>
+        <DonateProgress step={state.step} />
       </header>
 
-      <main className="mx-auto max-w-lg px-4 py-6 pb-24" role="main" aria-label="Donation workflow">
+      <main id="donate-main-top" className="mx-auto max-w-lg px-4 py-6 pb-24" role="main" aria-label="Donation workflow">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={stepKey}
+            initial={enterVariant(direction)}
+            animate={{ opacity: 1, x: 0 }}
+            exit={exitVariant(direction)}
+            transition={{ duration: reduce ? 0 : 0.32, ease: EASE }}
+          >
         {state.step === "error" && (
-          <div className="flex flex-col gap-6" role="alert" aria-live="assertive">
+          <motion.div
+            className="flex flex-col gap-6"
+            role="alert"
+            aria-live="assertive"
+            initial={reduce ? false : { x: [0, -8, 7, -5, 4, 0] }}
+            animate={{ x: 0 }}
+            transition={{ duration: 0.45 }}
+          >
             <div className="text-center">
               <Badge variant="error">Error</Badge>
               <h2 className="mt-3 font-display text-xl font-bold text-navy">
@@ -150,7 +210,7 @@ function DonatePageContent({ mutations }: { mutations?: ConvexMutations }) {
                 Start over
               </Button>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {state.step === "expired" && (
@@ -225,6 +285,7 @@ function DonatePageContent({ mutations }: { mutations?: ConvexMutations }) {
                 onSampleLoad={handleSampleLoad}
                 onAnalyze={handleAnalyze}
                 onTranscript={handleTranscript}
+                onHasAudioAsset={setHasAudioAsset}
                 hasImage={!!state.imageBase64}
                 imagePreview={imagePreview}
                 analyzing={isAnalyzing}
@@ -257,6 +318,7 @@ function DonatePageContent({ mutations }: { mutations?: ConvexMutations }) {
           <AnalysisStep
             analysis={state.analysis}
             trace={state.trace}
+            agentTrace={state.agentTrace}
             foodCategory={state.foodCategory}
             temperatureState={state.temperatureState}
             packagingState={state.packagingState}
@@ -305,9 +367,19 @@ function DonatePageContent({ mutations }: { mutations?: ConvexMutations }) {
             offerToken={state.offerToken}
             convexAvailable={state.convexAvailable}
             convexError={state.convexError}
+            agentTrace={state.agentTrace}
+            foodCategory={state.foodCategory}
+            temperatureState={state.temperatureState}
+            packagingState={state.packagingState}
+            pickupBy={state.pickupBy}
+            donorNotes={state.donorNotes}
+            analysis={state.analysis}
+            quantity={state.quantity}
             onReset={reset}
           />
         )}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       <footer className="fixed bottom-0 left-0 right-0 border-t border-navy-100 bg-fog/90 backdrop-blur-md safe-area-inset">

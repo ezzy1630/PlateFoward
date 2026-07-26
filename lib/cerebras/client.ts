@@ -3,7 +3,8 @@ import type { AnalyzeImageParams, AnalyzeResult } from "./types";
 
 const CEREBRAS_ENDPOINT = "https://api.cerebras.ai/v1/chat/completions";
 const MODEL = "gemma-4-31b";
-const TIMEOUT_MS = 8_000;
+const TIMEOUT_MS = 5_000;
+const REPAIR_DELAY_MS = 2_000;
 
 const JSON_SCHEMA = {
   type: "json_schema",
@@ -187,17 +188,60 @@ export async function analyzeImage(
   const mimeType = params.mimeType || "image/jpeg";
   const startTime = Date.now();
 
-  const first = await attemptRequest(
+  const firstAttempt = new Promise<Analysis | null>((resolve) => {
+    attemptRequest(
+      params.imageBase64,
+      mimeType,
+      apiKey,
+      params.transcript,
+      false,
+    ).then(resolve, () => resolve(null));
+  });
+
+  const repairTimer = new Promise<{ kind: "timer" }>((resolve) =>
+    setTimeout(() => resolve({ kind: "timer" }), REPAIR_DELAY_MS),
+  );
+
+  // Race the first attempt against the repair-delay timer.
+  const raceResult = await Promise.race([
+    firstAttempt.then((r) => ({ kind: "first", value: r })),
+    repairTimer,
+  ]);
+
+  if (raceResult.kind === "first") {
+    if (raceResult.value) {
+      return {
+        source: "gemma",
+        analysis: raceResult.value,
+        trace: {
+          model: MODEL,
+          timingMs: Date.now() - startTime,
+          retry: false,
+          nativeJsonSchema: true,
+        },
+      };
+    }
+    // First attempt finished with no value - fall through to repair.
+    return await runRepair(params, mimeType, apiKey, startTime);
+  }
+
+  // Timer fired before the first attempt resolved. Run repair in parallel
+  // with the still-pending first attempt. Whichever resolves non-null first
+  // wins; if both resolve null, surface ANALYSIS_FAILED.
+  const repairPromise = attemptRequest(
     params.imageBase64,
     mimeType,
     apiKey,
     params.transcript,
-    false,
-  );
-  if (first) {
+    true,
+  ).catch(() => null);
+
+  const [firstVal, repairVal] = await Promise.all([firstAttempt, repairPromise]);
+
+  if (firstVal) {
     return {
       source: "gemma",
-      analysis: first,
+      analysis: firstVal,
       trace: {
         model: MODEL,
         timingMs: Date.now() - startTime,
@@ -207,17 +251,40 @@ export async function analyzeImage(
     };
   }
 
-  const second = await attemptRequest(
+  if (repairVal) {
+    return {
+      source: "gemma",
+      analysis: repairVal,
+      trace: {
+        model: MODEL,
+        timingMs: Date.now() - startTime,
+        retry: true,
+        nativeJsonSchema: false,
+      },
+    };
+  }
+
+  return { source: "error", canUseFallback: true, errorCode: "ANALYSIS_FAILED" };
+}
+
+async function runRepair(
+  params: AnalyzeImageParams,
+  mimeType: string,
+  apiKey: string,
+  startTime: number,
+): Promise<AnalyzeResult> {
+  const repairVal = await attemptRequest(
     params.imageBase64,
     mimeType,
     apiKey,
     params.transcript,
     true,
-  );
-  if (second) {
+  ).catch(() => null);
+
+  if (repairVal) {
     return {
       source: "gemma",
-      analysis: second,
+      analysis: repairVal,
       trace: {
         model: MODEL,
         timingMs: Date.now() - startTime,

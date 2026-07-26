@@ -39,6 +39,10 @@ next-env.d.ts
 # convex
 .convex/
 
+# agents/skills
+.agents/
+skills-lock.json
+
 # IDE
 .idea/
 .vscode/

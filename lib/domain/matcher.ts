@@ -113,12 +113,10 @@ function evaluateMatch(
     }
   }
 
+  const etaDate = new Date(options.now.getTime() + options.etaMinutes * 60_000);
   const pickupByDate = new Date(donation.pickupBy);
-  const pickupByMinutes =
-    pickupByDate.getHours() * 60 + pickupByDate.getMinutes();
-  const deadlineMinutes = pickupByMinutes;
 
-  if (etaMinutesTotal > deadlineMinutes) {
+  if (etaDate > pickupByDate) {
     failures.push('eta_after_deadline');
   }
 
