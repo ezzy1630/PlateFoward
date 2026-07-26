@@ -1,97 +1,83 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(useGSAP);
 
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const headlineRef = useRef<HTMLHeadingElement>(null);
-  const eyebrowRef = useRef<HTMLParagraphElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
+  const copyRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-      tl.from(eyebrowRef.current, {
-        y: 16,
+      const children = copyRef.current?.children;
+      if (!children) return;
+      gsap.from(children, {
+        y: 28,
         opacity: 0,
-        duration: 0.7,
-      })
-        .from(
-          headlineRef.current,
-          {
-            y: 36,
-            opacity: 0,
-            duration: 0.95,
-          },
-          "-=0.35",
-        )
-        .from(
-          ctaRef.current,
-          {
-            y: 18,
-            opacity: 0,
-            duration: 0.6,
-          },
-          "-=0.35",
-        );
+        duration: 0.75,
+        stagger: 0.1,
+        ease: "power3.out",
+      });
     },
     { scope: containerRef },
   );
 
   return (
-    <div
+    <section
       ref={containerRef}
-      className="relative z-10 flex w-full flex-col items-center justify-center overflow-hidden px-4 py-16 md:py-20"
+      className="relative grid grid-cols-1 overflow-hidden md:min-h-[calc(100dvh-64px)] md:grid-cols-[52fr_48fr]"
     >
-      <div className="absolute inset-0 -z-10">
-        <Image
-          src="/demo/wrapped-sandwiches.png"
-          alt=""
-          fill
-          className="object-cover object-center opacity-[0.22]"
-          sizes="100vw"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-fog/75 via-fog/55 to-fog/90" />
-      </div>
-
-      <p
-        ref={eyebrowRef}
-        className="mb-5 font-mono text-[0.625rem] font-semibold uppercase tracking-[0.28em] text-orange"
-      >
-        Coastal food rescue
-      </p>
-
-      <h1
-        ref={headlineRef}
-        className="max-w-[14ch] text-center font-display text-[2.75rem] font-bold leading-[1.02] tracking-[-0.03em] text-navy text-balance sm:text-5xl md:text-6xl lg:text-7xl"
-      >
-        Move good food forward.
-      </h1>
-
+      {/* Left: copy block */}
       <div
-        ref={ctaRef}
-        className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:gap-5"
+        ref={copyRef}
+        className="z-10 flex flex-col justify-center px-5 pb-12 pt-20 md:px-10 md:pb-20 md:pt-16 lg:px-14"
       >
-        <Link
-          href="/donate"
-          className="btn-base min-h-[52px] min-w-[180px] bg-orange px-8 py-4 text-base text-white hover:bg-orange-600 active:bg-orange-600"
-        >
-          Start a donation
-          <ArrowRight size={20} weight="bold" />
-        </Link>
-        <span className="font-mono text-[0.625rem] uppercase tracking-[0.18em] text-fog-600">
-          Demo only
-        </span>
+        <h1 className="max-w-[14ch] font-display text-[2.75rem] font-bold leading-[1.04] tracking-[-0.03em] text-navy sm:text-5xl md:text-[3.25rem] lg:text-6xl">
+          Move good food forward.
+        </h1>
+
+        <p className="mt-5 max-w-[42ch] text-sm leading-relaxed text-fog-600 text-pretty md:mt-6 md:text-[0.9375rem]">
+          AI-powered surplus food matching for Santa Cruz County. Connect extra
+          meals with food banks and shelters in minutes.
+        </p>
+
+        <div className="mt-7 flex items-center gap-4 md:mt-9">
+          <Link
+            href="/donate"
+            className="btn-base min-h-[48px] bg-orange px-7 py-3.5 text-sm font-semibold text-white hover:bg-orange-600 active:scale-[0.98] md:min-h-[52px] md:px-8 md:py-4 md:text-[0.9375rem]"
+          >
+            Start a donation
+            <ArrowRight size={18} weight="bold" className="md:hidden" />
+            <ArrowRight size={20} weight="bold" className="hidden md:block" />
+          </Link>
+          <span className="font-mono text-[0.625rem] uppercase tracking-[0.16em] text-fog-600">
+            Free demo
+          </span>
+        </div>
       </div>
-    </div>
+
+      {/* Right: full-bleed image with diagonal seam */}
+      <div className="relative order-first h-[35vh] w-full overflow-hidden md:order-none md:h-full">
+        <div className="absolute inset-0 md:[clip-path:polygon(10%_0,100%_0,100%_100%,0_100%)]">
+          <Image
+            src="/demo/wrapped-sandwiches.png"
+            alt="Freshly wrapped sandwiches prepared for donation"
+            fill
+            className="object-cover object-center"
+            sizes="(max-width: 768px) 100vw, 48vw"
+            priority
+          />
+          {/* Warm gradient overlay for depth */}
+          <div className="absolute inset-0 bg-gradient-to-br from-navy/20 via-transparent to-orange/15" />
+        </div>
+      </div>
+    </section>
   );
 }

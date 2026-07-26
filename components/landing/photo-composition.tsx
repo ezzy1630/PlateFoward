@@ -72,7 +72,7 @@ export function PhotoComposition() {
         <div className="comp-tile relative col-span-3 overflow-hidden rounded-box bg-[#DCE8F2]">
           <div className="flex h-full items-center justify-center px-3">
             <span className="font-mono text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-navy/70 sm:text-xs">
-              Live tracking
+              Demo tracking
             </span>
           </div>
         </div>
