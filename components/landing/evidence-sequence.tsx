@@ -35,6 +35,53 @@ const steps = [
   },
 ];
 
+function SectionHeading({ headingId }: { headingId?: string }) {
+  return (
+    <div className="mb-10 text-center md:mb-14">
+      <span className="font-mono text-[0.625rem] font-semibold uppercase tracking-[0.28em] text-orange">
+        How it works
+      </span>
+      <h2
+        id={headingId}
+        className="mt-3 font-display text-3xl font-bold tracking-[-0.02em] text-navy text-balance md:text-4xl"
+      >
+        Surplus to service in four moves
+      </h2>
+    </div>
+  );
+}
+
+function StepCard({
+  step,
+  index,
+}: {
+  step: (typeof steps)[number];
+  index: number;
+}) {
+  return (
+    <article className="rounded-box border border-navy-100 bg-surface p-6 shadow-[0_12px_40px_-24px_rgba(26,43,74,0.45)] md:p-8">
+      <div className="flex items-start gap-4 md:gap-5">
+        <div className="-ml-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange-100 ring-4 ring-fog md:-ml-2">
+          <step.icon size={22} className="text-orange" weight="regular" />
+        </div>
+        <div className="min-w-0 flex-1 pt-0.5">
+          <div className="flex items-baseline gap-2.5">
+            <span className="font-mono text-[0.625rem] font-semibold text-fog-600">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <h3 className="font-display text-lg font-semibold text-navy md:text-xl">
+              {step.label}
+            </h3>
+          </div>
+          <p className="mt-2 text-sm leading-relaxed text-fog-600 text-pretty md:text-[0.9375rem]">
+            {step.description}
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export function EvidenceSequence() {
   const sectionRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
@@ -73,11 +120,7 @@ export function EvidenceSequence() {
           cardElements[i - 1],
           { opacity: 0.28, y: -12, scale: 0.96, duration: 0.45 },
           "+=0.15",
-        ).to(
-          card,
-          { opacity: 1, y: 0, scale: 1, duration: 0.5 },
-          "<",
-        );
+        ).to(card, { opacity: 1, y: 0, scale: 1, duration: 0.5 }, "<");
       });
     },
     { scope: sectionRef },
@@ -87,66 +130,35 @@ export function EvidenceSequence() {
     <section
       ref={sectionRef}
       className="relative overflow-hidden bg-fog py-20 md:py-24"
-      aria-labelledby="how-it-works-heading"
+      aria-label="How it works"
     >
-      <div ref={pinRef} className="flex min-h-dvh items-center justify-center">
-        <div className="w-full max-w-3xl px-4 md:px-8">
-          <div className="mb-10 text-center md:mb-14">
-            <span className="font-mono text-[0.625rem] font-semibold uppercase tracking-[0.28em] text-orange">
-              How it works
-            </span>
-            <h2
-              id="how-it-works-heading"
-              className="mt-3 font-display text-3xl font-bold tracking-[-0.02em] text-navy text-balance md:text-4xl"
-            >
-              Surplus to service in four moves
-            </h2>
-          </div>
+      <div className="mx-auto hidden max-w-xl space-y-4 px-4 motion-reduce:block md:px-8">
+        <SectionHeading headingId="how-it-works-heading" />
+        {steps.map((step, i) => (
+          <StepCard key={step.label} step={step} index={i} />
+        ))}
+      </div>
 
-          <div ref={cardsRef} className="relative mx-auto min-h-[200px] max-w-xl md:min-h-[220px]">
+      <div
+        ref={pinRef}
+        className="flex min-h-dvh items-center justify-center motion-reduce:hidden"
+      >
+        <div className="w-full max-w-3xl px-4 md:px-8">
+          <SectionHeading headingId="how-it-works-heading-motion" />
+          <div
+            ref={cardsRef}
+            className="relative mx-auto min-h-[200px] max-w-xl md:min-h-[220px]"
+          >
             {steps.map((step, i) => (
-              <article
+              <div
                 key={step.label}
-                className="evidence-card absolute inset-x-0 top-0 rounded-box border border-navy-100 bg-surface p-6 shadow-[0_12px_40px_-24px_rgba(26,43,74,0.45)] md:p-8"
+                className="evidence-card absolute inset-x-0 top-0"
                 style={{ zIndex: steps.length - i }}
               >
-                <div className="flex items-start gap-4 md:gap-5">
-                  <div className="-ml-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange-100 ring-4 ring-fog md:-ml-2">
-                    <step.icon size={22} className="text-orange" weight="regular" />
-                  </div>
-                  <div className="min-w-0 flex-1 pt-0.5">
-                    <div className="flex items-baseline gap-2.5">
-                      <span className="font-mono text-[0.625rem] font-semibold text-fog-600">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <h3 className="font-display text-lg font-semibold text-navy md:text-xl">
-                        {step.label}
-                      </h3>
-                    </div>
-                    <p className="mt-2 text-sm leading-relaxed text-fog-600 text-pretty md:text-[0.9375rem]">
-                      {step.description}
-                    </p>
-                  </div>
-                </div>
-              </article>
+                <StepCard step={step} index={i} />
+              </div>
             ))}
           </div>
-
-          <noscript>
-            <ol className="mx-auto mt-8 max-w-xl space-y-4">
-              {steps.map((step, i) => (
-                <li
-                  key={step.label}
-                  className="rounded-box border border-navy-100 bg-surface p-5"
-                >
-                  <p className="font-display text-base font-semibold text-navy">
-                    {String(i + 1).padStart(2, "0")} {step.label}
-                  </p>
-                  <p className="mt-1 text-sm text-fog-600">{step.description}</p>
-                </li>
-              ))}
-            </ol>
-          </noscript>
         </div>
       </div>
     </section>

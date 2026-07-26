@@ -2,17 +2,9 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
-import {
-  Camera,
-  Microphone,
-  Play,
-  Pause,
-  Spinner,
-  Scan,
-  LockSimple,
-  ImageSquare,
-} from "@phosphor-icons/react";
+import { Camera, Upload, ImageSquare, Spinner, Play, Pause, Check } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface CaptureStepProps {
   onImageCapture: (base64: string, mimeType: string) => void;
@@ -42,7 +34,6 @@ export function CaptureStep({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioState, setAudioState] = useState<"idle" | "loading" | "playing" | "paused">("idle");
   const [transcriptReady, setTranscriptReady] = useState(false);
-  const [audioProgress, setAudioProgress] = useState(0);
 
   useEffect(() => {
     return () => {
@@ -53,56 +44,6 @@ export function CaptureStep({
       }
     };
   }, []);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || audioState !== "playing") return;
-
-    const sync = () => {
-      if (audio.duration && Number.isFinite(audio.duration)) {
-        setAudioProgress(audio.currentTime / audio.duration);
-      }
-    };
-
-    audio.addEventListener("timeupdate", sync);
-    return () => audio.removeEventListener("timeupdate", sync);
-  }, [audioState]);
-
-  const openFilePicker = useCallback(
-    (capture: boolean) => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      if (capture) input.capture = "environment";
-      input.style.position = "fixed";
-      input.style.opacity = "0";
-      input.style.pointerEvents = "none";
-      document.body.appendChild(input);
-
-      input.onchange = () => {
-        const file = input.files?.[0];
-        if (!file) {
-          document.body.removeChild(input);
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          const base64 = result.split(",")[1] || result;
-          onImageCapture(base64, file.type || "image/jpeg");
-        };
-        reader.readAsDataURL(file);
-        document.body.removeChild(input);
-      };
-
-      input.oncancel = () => {
-        document.body.removeChild(input);
-      };
-
-      input.click();
-    },
-    [onImageCapture],
-  );
 
   const handlePlaySample = useCallback(() => {
     if (audioState === "playing" && audioRef.current) {
@@ -128,14 +69,76 @@ export function CaptureStep({
     audio.oncanplaythrough = () => {
       audio.play().then(() => setAudioState("playing")).catch(() => setAudioState("idle"));
     };
-    audio.onended = () => {
-      setAudioState("idle");
-      setAudioProgress(0);
-    };
+    audio.onended = () => setAudioState("idle");
     audio.onerror = () => setAudioState("idle");
 
     audio.load();
   }, [audioState, transcriptReady, onTranscript]);
+
+  const handleCapture = useCallback(async () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.capture = "environment";
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    input.style.pointerEvents = "none";
+    document.body.appendChild(input);
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) {
+        document.body.removeChild(input);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1] || result;
+        onImageCapture(base64, file.type || "image/jpeg");
+      };
+      reader.readAsDataURL(file);
+      document.body.removeChild(input);
+    };
+
+    input.oncancel = () => {
+      document.body.removeChild(input);
+    };
+
+    input.click();
+  }, [onImageCapture]);
+
+  const handleUpload = useCallback(async () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    input.style.pointerEvents = "none";
+    document.body.appendChild(input);
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) {
+        document.body.removeChild(input);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1] || result;
+        onImageCapture(base64, file.type || "image/jpeg");
+      };
+      reader.readAsDataURL(file);
+      document.body.removeChild(input);
+    };
+
+    input.oncancel = () => {
+      document.body.removeChild(input);
+    };
+
+    input.click();
+  }, [onImageCapture]);
 
   const handleSample = useCallback(async () => {
     setLoadingSample(true);
@@ -149,125 +152,119 @@ export function CaptureStep({
     }
   }, [onSampleLoad, onImageCapture]);
 
-  const progressLabel = transcriptReady
-    ? "0:30 / 0:30"
-    : audioState === "playing" || audioState === "paused"
-      ? `${Math.floor(audioProgress * 30)
-          .toString()
-          .padStart(1, "0")}:00 / 0:30`.replace(/^(\d):/, "0:$1:")
-      : "0:00 / 0:30";
-
   return (
-    <div className="flex flex-col gap-5">
-      <header className="space-y-1.5">
-        <h2 className="font-display text-2xl font-bold tracking-tight text-navy text-wrap-balance">
-          Create donation
+    <div className="flex flex-col gap-6">
+      <div className="text-center">
+        <Badge variant="demo">Demo operation</Badge>
+        <h2 className="mt-3 font-display text-xl font-bold text-navy">
+          Capture your food
         </h2>
-        <p className="text-sm leading-relaxed text-fog-600 text-pretty">
-          Share surplus food. We will help it reach someone who needs it.
+        <p className="mt-1 text-sm text-fog-600">
+          Take a photo or upload an image of the food you want to donate.
         </p>
-      </header>
+      </div>
 
-      <div className="overflow-hidden rounded-box border border-navy-100 bg-surface shadow-sm">
+      <div className="grid grid-cols-3 gap-3">
         <button
-          type="button"
-          onClick={() => openFilePicker(true)}
-          className="relative block aspect-[4/3] w-full overflow-hidden bg-navy-100 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange"
-          aria-label={imagePreview ? "Retake food photo" : "Take a photo of the food"}
+          onClick={handleCapture}
+          className="flex flex-col items-center justify-center gap-2 rounded-box border-2 border-dashed border-navy-200 bg-surface p-6 transition-colors hover:border-orange hover:bg-orange-100 focus-visible:outline-2 focus-visible:outline-orange min-h-[120px]"
+          aria-label="Take a photo with camera"
         >
-          {imagePreview ? (
+          <Camera size={28} className="text-navy" />
+          <span className="text-xs font-medium text-navy">Camera</span>
+        </button>
+
+        <button
+          onClick={handleUpload}
+          className="flex flex-col items-center justify-center gap-2 rounded-box border-2 border-dashed border-navy-200 bg-surface p-6 transition-colors hover:border-orange hover:bg-orange-100 focus-visible:outline-2 focus-visible:outline-orange min-h-[120px]"
+          aria-label="Upload image from device"
+        >
+          <Upload size={28} className="text-navy" />
+          <span className="text-xs font-medium text-navy">Upload</span>
+        </button>
+
+        <button
+          onClick={handleSample}
+          disabled={loadingSample}
+          className="flex flex-col items-center justify-center gap-2 rounded-box border-2 border-dashed border-navy-200 bg-surface p-6 transition-colors hover:border-orange hover:bg-orange-100 focus-visible:outline-2 focus-visible:outline-orange min-h-[120px] disabled:opacity-40"
+          aria-label="Load sample image"
+        >
+          {loadingSample ? (
+            <Spinner size={28} className="animate-spin text-navy" />
+          ) : (
+            <ImageSquare size={28} className="text-navy" />
+          )}
+          <span className="text-xs font-medium text-navy">Sample</span>
+        </button>
+      </div>
+
+      {imagePreview && (
+        <div className="overflow-hidden rounded-box border border-navy-200 bg-surface">
+          <div className="relative aspect-[4/3] w-full">
             <Image
               src={imagePreview}
-              alt="Captured food preview"
+              alt="Captured food image preview"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 500px"
               unoptimized
             />
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-b from-navy-100 to-navy-200/60">
-              <Camera size={36} className="text-navy/50" />
-              <span className="text-sm font-medium text-navy/70">Tap to photograph food</span>
-            </div>
-          )}
-          <span className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-navy/80 text-fog shadow-sm backdrop-blur-sm">
-            <Camera size={18} weight="bold" />
-          </span>
-        </button>
-
-        <div className="flex items-center gap-2 border-t border-navy-100 px-3 py-2">
-          <button
-            type="button"
-            onClick={() => openFilePicker(false)}
-            className="flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-medium text-navy hover:bg-navy-100"
-          >
-            Upload
-          </button>
-          <div className="h-4 w-px bg-navy-100" aria-hidden />
-          <button
-            type="button"
-            onClick={handleSample}
-            disabled={loadingSample}
-            className="flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-medium text-navy hover:bg-navy-100 disabled:opacity-40"
-            aria-label="Load sample image"
-          >
-            {loadingSample ? (
-              <Spinner size={14} className="animate-spin" />
-            ) : (
-              <ImageSquare size={14} />
-            )}
-            Sample
-          </button>
+          </div>
+          <div className="flex items-center justify-between px-4 py-3">
+            <span className="text-xs text-fog-600 font-mono">Image captured</span>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 font-mono text-[0.625rem] font-semibold uppercase tracking-wider text-orange bg-orange-100 rounded-full">
+              <span className="h-1.5 w-1.5 rounded-full bg-orange" />
+              Demo
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="rounded-box border border-navy-100 bg-surface px-3 py-3 shadow-sm">
+      <div className="flex flex-col gap-2">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange">
-            <Microphone size={18} weight="fill" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-navy">
-              {transcriptReady ? "Voice note ready" : "Add a voice note (optional)"}
-            </p>
-            <div className="mt-1.5 flex items-center gap-2">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-navy-100">
-                <div
-                  className="h-full rounded-full bg-orange transition-[width] duration-150"
-                  style={{
-                    width: transcriptReady
-                      ? "100%"
-                      : `${Math.max(audioProgress * 100, audioState === "playing" ? 4 : 0)}%`,
-                  }}
-                />
-              </div>
-              <span className="shrink-0 font-mono text-[0.625rem] text-fog-600">
-                {progressLabel}
-              </span>
-            </div>
-          </div>
           <button
-            type="button"
             onClick={handlePlaySample}
             disabled={audioState === "loading"}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-navy-200 bg-surface text-navy hover:border-orange hover:text-orange disabled:opacity-40"
+            className={`flex items-center gap-2 rounded-box border-2 px-4 py-3 text-sm font-medium transition-colors min-h-[44px] ${
+              transcriptReady
+                ? "border-success bg-success-100 text-success"
+                : audioState === "playing" || audioState === "paused"
+                  ? "border-orange bg-orange-100 text-orange"
+                  : "border-navy-200 bg-surface text-navy hover:border-orange"
+            } disabled:opacity-40`}
             aria-label={
-              audioState === "playing"
-                ? "Pause sample voice note"
-                : "Play sample voice note"
+              transcriptReady
+                ? "Sample transcript loaded. Tap to play or pause audio."
+                : audioState === "playing"
+                  ? "Pause sample voice note"
+                  : audioState === "paused"
+                    ? "Resume sample voice note"
+                    : "Play sample voice note and load transcript"
             }
           >
-            {audioState === "loading" ? (
-              <Spinner size={16} className="animate-spin" />
+            {transcriptReady ? (
+              <Check size={18} weight="fill" />
             ) : audioState === "playing" ? (
-              <Pause size={16} weight="fill" />
+              <Pause size={18} weight="fill" />
             ) : (
-              <Play size={16} weight="fill" />
+              <Play size={18} weight="fill" />
             )}
+            {transcriptReady
+              ? "Transcript loaded"
+              : audioState === "loading"
+                ? "Loading..."
+                : audioState === "playing"
+                  ? "Playing sample..."
+                  : audioState === "paused"
+                    ? "Paused"
+                    : "Play sample voice note"}
           </button>
+          <span className="font-mono text-[0.625rem] text-fog-600">Optional</span>
         </div>
-        <p className="mt-2 text-xs text-fog-600">
-          Demo note loads a sample transcript for analysis.
+        <p className="text-xs text-fog-600">
+          {transcriptReady
+            ? "Sample transcript loaded for demo."
+            : "Plays a demo audio note and loads a sample transcript."}
         </p>
       </div>
 
@@ -275,18 +272,11 @@ export function CaptureStep({
         onClick={onAnalyze}
         disabled={!hasImage || analyzing}
         loading={analyzing}
-        variant="secondary"
         size="lg"
         className="w-full"
       >
-        <Scan size={18} weight="bold" />
-        {analyzing ? "Analyzing..." : "Analyze donation"}
+        {analyzing ? "Analyzing..." : "Analyze food"}
       </Button>
-
-      <p className="flex items-center justify-center gap-1.5 text-center text-xs text-fog-600">
-        <LockSimple size={12} weight="fill" />
-        Your details are private and never shared publicly.
-      </p>
     </div>
   );
 }

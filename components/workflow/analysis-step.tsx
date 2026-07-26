@@ -4,15 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
-import {
-  PencilSimple,
-  ArrowRight,
-  Package,
-  Thermometer,
-  Tag,
-  Minus,
-  Plus,
-} from "@phosphor-icons/react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { PencilLine, ArrowRight } from "@phosphor-icons/react";
 import type { Analysis, TraceInfo } from "@/lib/cerebras";
 import type { FoodCategory, TemperatureState, PackagingState } from "@/lib/domain/types";
 
@@ -61,160 +55,154 @@ export function AnalysisStep({
   onSetDonorNotes,
   onProceed,
 }: AnalysisStepProps) {
-  const primaryItem = analysis.foodItems[0]?.name ?? categoryLabels[foodCategory];
-
   return (
-    <div className="flex flex-col gap-5">
-      <header className="space-y-1.5">
-        <h2 className="font-display text-2xl font-bold tracking-tight text-navy text-wrap-balance">
+    <div className="flex flex-col gap-6">
+      <div className="text-center">
+        <Badge variant="demo">Demo operation</Badge>
+        <h2 className="mt-3 font-display text-xl font-bold text-navy">
           Review extraction
         </h2>
-        <p className="text-sm leading-relaxed text-fog-600 text-pretty">
-          Confirm the details below so matching stays accurate. This is a demo review, not a safety certification.
+        <p className="mt-1 text-sm text-fog-600">
+          Check and edit what the AI found in your image.
         </p>
-      </header>
+      </div>
 
       {trace && (
-        <div className="rounded-box border border-navy-100 bg-navy-100/40 px-3 py-2.5">
-          <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[0.625rem] text-fog-600">
-            <span>{trace.model}</span>
-            <span>{trace.timingMs}ms</span>
-            <span>{trace.nativeJsonSchema ? "Native schema" : "Repaired schema"}</span>
-          </div>
-        </div>
+        <Card variant="bordered" className="bg-navy-100/50">
+          <CardContent className="!p-3">
+            <div className="trace space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-navy-600">Model:</span>
+                <span className="text-navy">{trace.model}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-navy-600">Timing:</span>
+                <span className="text-navy">{trace.timingMs}ms</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-navy-600">Retry:</span>
+                <span className="text-navy">{trace.retry ? "Yes" : "No"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-navy-600">JSON schema:</span>
+                <span className="text-navy">{trace.nativeJsonSchema ? "Native" : "Repair"}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="space-y-3 rounded-box border border-navy-100 bg-surface p-4 shadow-sm">
-        <div>
-          <label htmlFor="food-item" className="mb-1.5 block text-sm font-medium text-navy">
-            Food item
-          </label>
-          <div className="relative">
-            <input
-              id="food-item"
-              value={primaryItem}
-              readOnly
-              className="w-full rounded-box border border-navy-200 bg-surface py-3 pl-4 pr-11 text-sm font-medium text-navy min-h-[44px]"
-            />
-            <PencilSimple
-              size={16}
-              className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-fog-600"
-            />
+      <Card variant="default">
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-navy-100 pb-3">
+            <PencilLine size={18} className="text-orange" />
+            <span className="text-sm font-semibold text-navy">Detected items</span>
           </div>
+          {analysis.foodItems.map((item, i) => (
+            <div key={i} className="flex items-center justify-between border-b border-navy-50 pb-2 last:border-0 last:pb-0">
+              <div>
+                <span className="text-sm font-medium text-navy">{item.name}</span>
+                <span className="ml-2 font-mono text-[0.625rem] text-fog-600">
+                  {item.category}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-navy">{item.estimatedQuantity}</span>
+                <span className="font-mono text-[0.625rem] text-fog-600">
+                  {Math.round(item.confidence * 100)}%
+                </span>
+              </div>
+            </div>
+          ))}
+
+          <p className="mt-2 text-xs leading-relaxed text-fog-600">
+            {analysis.conciseExplanation}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card variant="default">
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-navy-100 pb-3">
+            <span className="font-mono text-[0.625rem] font-semibold text-orange">Edit</span>
+            <span className="text-sm font-semibold text-navy">Donation details</span>
+          </div>
+
           <Select
             label="Food category"
             value={foodCategory}
             onChange={(e) => onUpdateExtraction("foodCategory", e.target.value)}
             options={categoryKeys.map((k) => ({ value: k, label: categoryLabels[k] }))}
-            className="mt-3"
           />
-        </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <span className="mb-1.5 block text-sm font-medium text-navy">Quantity</span>
-            <div className="flex min-h-[44px] items-center justify-between rounded-box border border-navy-200 bg-surface px-2">
-              <button
-                type="button"
-                aria-label="Decrease quantity"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-navy hover:bg-navy-100 disabled:opacity-30"
-                disabled={quantity <= 1}
-                onClick={() => onUpdateExtraction("quantity", Math.max(1, quantity - 1))}
-              >
-                <Minus size={16} weight="bold" />
-              </button>
-              <span className="min-w-[2ch] text-center text-sm font-semibold text-navy">
-                {quantity}
-              </span>
-              <button
-                type="button"
-                aria-label="Increase quantity"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-navy hover:bg-navy-100"
-                onClick={() => onUpdateExtraction("quantity", quantity + 1)}
-              >
-                <Plus size={16} weight="bold" />
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="temperature" className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-navy">
-              <Thermometer size={14} className="text-fog-600" />
-              Temperature
-            </label>
+          <div className="grid grid-cols-2 gap-3">
             <Select
-              id="temperature"
+              label="Temperature"
               value={temperatureState}
               onChange={(e) => onUpdateExtraction("temperatureState", e.target.value)}
               options={tempKeys.map((k) => ({ value: k, label: tempLabels[k] }))}
             />
+            <Select
+              label="Packaging"
+              value={packagingState}
+              onChange={(e) => onUpdateExtraction("packagingState", e.target.value)}
+              options={packageKeys.map((k) => ({ value: k, label: packageLabels[k] }))}
+            />
           </div>
-        </div>
 
-        <div>
-          <label htmlFor="packaging" className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-navy">
-            <Package size={14} className="text-fog-600" />
-            Packaging
-          </label>
-          <Select
-            id="packaging"
-            value={packagingState}
-            onChange={(e) => onUpdateExtraction("packagingState", e.target.value)}
-            options={packageKeys.map((k) => ({ value: k, label: packageLabels[k] }))}
+          <Input
+            label="Quantity (servings)"
+            type="number"
+            min={1}
+            value={quantity}
+            onChange={(e) => onUpdateExtraction("quantity", parseInt(e.target.value) || 1)}
           />
-        </div>
 
-        {analysis.allergens.length > 0 && (
-          <div>
-            <span className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-navy">
-              <Tag size={14} className="text-fog-600" />
-              Allergens
-            </span>
-            <div className="flex min-h-[44px] flex-wrap items-center gap-1.5 rounded-box border border-navy-200 bg-surface px-3 py-2.5">
-              {analysis.allergens.map((a) => (
-                <span
-                  key={a}
-                  className="inline-flex items-center rounded-md bg-navy-100 px-2 py-0.5 text-xs font-medium text-navy"
-                >
-                  {a}
-                </span>
-              ))}
+          {analysis.allergens.length > 0 && (
+            <div>
+              <span className="text-sm font-medium text-navy">Allergens detected</span>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {analysis.allergens.map((a) => (
+                  <span
+                    key={a}
+                    className="inline-flex items-center px-2 py-0.5 font-mono text-[0.625rem] font-medium text-navy bg-navy-100 rounded"
+                  >
+                    {a}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <p className="text-xs leading-relaxed text-fog-600 text-pretty">
-          {analysis.conciseExplanation}
-        </p>
-      </div>
+          <div className="h-px bg-navy-100" />
 
-      <div className="space-y-3 rounded-box border border-navy-100 bg-surface p-4 shadow-sm">
-        <Input
-          label="Pickup zip (Santa Cruz area)"
-          value={donorZipCode}
-          onChange={(e) => onSetZipCode(e.target.value)}
-          placeholder="95060"
-          maxLength={5}
-          pattern="[0-9]{5}"
-        />
+          <Input
+            label="Your zip code (Santa Cruz area)"
+            value={donorZipCode}
+            onChange={(e) => onSetZipCode(e.target.value)}
+            placeholder="95060"
+            maxLength={5}
+            pattern="[0-9]{5}"
+          />
 
-        <Input
-          label="Available until"
-          type="datetime-local"
-          value={pickupBy}
-          onChange={(e) => onSetPickupBy(e.target.value)}
-        />
+          <Input
+            label="Pickup deadline"
+            type="datetime-local"
+            value={pickupBy}
+            onChange={(e) => onSetPickupBy(e.target.value)}
+          />
 
-        <Textarea
-          label="Notes (optional)"
-          value={donorNotes}
-          onChange={(e) => onSetDonorNotes(e.target.value)}
-          placeholder="Any special instructions for pickup..."
-          rows={2}
-        />
-      </div>
+          <Textarea
+            label="Notes (optional)"
+            value={donorNotes}
+            onChange={(e) => onSetDonorNotes(e.target.value)}
+            placeholder="Any special instructions for pickup..."
+            rows={2}
+          />
+        </CardContent>
+      </Card>
 
-      <Button onClick={onProceed} variant="secondary" size="lg" className="w-full">
+      <Button onClick={onProceed} size="lg" className="w-full">
         Continue to confirmations
         <ArrowRight size={18} weight="bold" />
       </Button>
