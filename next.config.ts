@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   },
   compress: true,
   poweredByHeader: false,
+  experimental: {
+    viewTransition: true,
+  },
 };
 
 export default nextConfig;
