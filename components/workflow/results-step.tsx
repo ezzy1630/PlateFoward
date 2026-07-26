@@ -50,7 +50,7 @@ const FAILURE_LABELS: Record<MatchFailure, string> = {
   service_area_mismatch: "Outside service area",
   closes_before_arrival: "Closes before estimated arrival",
   eta_after_deadline: "ETA exceeds pickup deadline",
-  insufficient_demo_capacity: "Demo capacity reached",
+  insufficient_demo_capacity: "Recipient capacity reached",
 };
 
 function formatDate(iso: string): string {
@@ -181,8 +181,7 @@ export function ResultsStep({
   return (
     <div className="flex flex-col gap-6" aria-live="polite">
       <div className="text-center">
-        <Badge variant="demo">Demo operation</Badge>
-        <h2 className="mt-3 font-display text-xl font-bold text-navy">
+        <h2 className="font-display text-xl font-bold text-navy">
           Match results
         </h2>
         <p className="mt-1 text-sm text-fog-600">
@@ -216,7 +215,7 @@ export function ResultsStep({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35, ease: EASE, delay: 0.15 }}
           >
-            <Badge variant="demo">Offer QR</Badge>
+            <Badge variant="warning">Offer QR</Badge>
             <p className="font-mono text-[0.625rem] text-fog-600 text-center max-w-xs">
               Scans to {getOfferUrl(offerToken)}
             </p>
@@ -286,9 +285,6 @@ export function ResultsStep({
                         </span>
                       )}
                     </div>
-                    {match.recipient.demoOnly && (
-                      <Badge variant="demo">Demo</Badge>
-                    )}
                     {offerToken && convexAvailable && (
                       <Link
                         href={getOfferUrl(offerToken)}
@@ -331,7 +327,7 @@ export function ResultsStep({
             allergens={analysis?.allergens ?? []}
             pickupDeadline={pickupBy}
             donorPickupInstructions={donorNotes}
-            offerStatus={offerToken ? "offered" : "demo"}
+            offerStatus={offerToken ? "offered" : "pending"}
             demoOnly={!convexAvailable}
             offerUrl={offerToken ? getOfferUrl(offerToken) : undefined}
           />
@@ -381,12 +377,6 @@ export function ResultsStep({
                       </div>
                     ))}
                   </div>
-
-                  <div className="flex items-center gap-2 pt-1">
-                    {match.recipient.demoOnly && (
-                      <Badge variant="demo">Demo</Badge>
-                    )}
-                  </div>
                 </CardContent>
               </Card>
               </motion.div>
@@ -401,7 +391,6 @@ export function ResultsStep({
             <h3 className="font-display text-sm font-semibold text-navy">
               Receipt preview
             </h3>
-            <Badge variant="demo">Demo</Badge>
           </div>
           <div className="receipt-print space-y-1.5 font-mono text-xs text-navy">
             <p className="text-orange font-semibold">---- PLATEFOWARD ----</p>
@@ -418,7 +407,7 @@ export function ResultsStep({
               <p>Address: {compatible[0].recipient.address}</p>
             )}
             <p className="border-t border-navy-200 pt-1 text-fog-600">
-              * This is a demo receipt. Not a tax document.
+              * Confirmation summary. Coordinate pickup with recipient.
             </p>
           </div>
         </CardContent>

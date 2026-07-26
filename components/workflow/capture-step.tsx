@@ -17,7 +17,6 @@ import {
   MicrophoneSlash,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { vibrate } from "@/lib/haptics";
@@ -433,8 +432,7 @@ export function CaptureStep({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <Badge variant="demo">Demo operation</Badge>
-        <h2 className="mt-3 font-display text-xl font-bold text-navy">
+        <h2 className="font-display text-xl font-bold text-navy">
           Capture your food
         </h2>
         <p className="mt-1 text-sm text-fog-600">
@@ -489,15 +487,6 @@ export function CaptureStep({
             </div>
             <div className="flex items-center justify-between px-4 py-3">
               <span className="text-xs text-fog-600 font-mono">Image captured</span>
-              <motion.span
-                initial={reduce ? false : { opacity: 0, x: 8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.35, ease: EASE, delay: 0.1 }}
-                className="inline-flex items-center gap-1 px-2 py-0.5 font-mono text-[0.625rem] font-semibold uppercase tracking-wider text-orange bg-orange-100 rounded-full"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-orange" />
-                Demo
-              </motion.span>
             </div>
           </motion.div>
         )}

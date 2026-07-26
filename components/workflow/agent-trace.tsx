@@ -42,7 +42,7 @@ const ACTOR_LABELS: Record<TraceActor, string> = {
   gemma: "Gemma",
   app: "App",
   convex: "Convex",
-  fallback: "Demo fallback",
+  fallback: "Cached sample",
   donor: "Donor",
 };
 

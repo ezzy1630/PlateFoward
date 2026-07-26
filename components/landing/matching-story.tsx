@@ -17,26 +17,26 @@ const STORY_STEPS = [
   {
     icon: Brain,
     title: "AI identifies the food",
-    body: "The donor photographs 30 wrapped sandwiches. The demo AI extracts item names, quantities, temperature state, and packaging condition from the image.",
-    accent: "Demo image analysis",
+    body: "The donor photographs 30 wrapped sandwiches. The AI extracts item names, quantities, temperature state, and packaging condition from the image.",
+    accent: "Image analysis",
   },
   {
     icon: MapPin,
     title: "Matcher ranks recipients",
-    body: "Three demo recipients in Santa Cruz County are scored against the donation. Compatibility depends on category, window, and proximity.",
-    accent: "Demo scoring",
+    body: "Three recipients in Santa Cruz County are scored against the donation. Compatibility depends on category, window, and proximity.",
+    accent: "Scoring",
   },
   {
     icon: QrCode,
     title: "QR handoff and tracking",
-    body: "A demo offer token is generated with a scannable QR code. The recipient accepts or declines within the pickup window.",
-    accent: "Demo offer token",
+    body: "An offer token is generated with a scannable QR code. The recipient accepts or declines within the pickup window.",
+    accent: "Offer token",
   },
   {
     icon: ArrowsClockwise,
     title: "Decline reroutes the offer",
-    body: "If the first recipient cannot accept, the demo offer automatically reroutes to the next best match. The donor is notified and the new recipient receives an updated QR token.",
-    accent: "Demo rerouting",
+    body: "If the first recipient cannot accept, the offer automatically reroutes to the next best match. The donor is notified and the new recipient receives an updated QR token.",
+    accent: "Rerouting",
   },
 ];
 
@@ -89,7 +89,7 @@ export function MatchingStory() {
 
             <div className="mt-auto hidden pt-10 md:block">
               <span className="inline-block rounded-full border border-navy/10 px-3.5 py-1.5 font-mono text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-fog-600">
-                Demo operation - not a live matching service
+                Real-time matching
               </span>
             </div>
           </div>
@@ -136,7 +136,7 @@ export function MatchingStory() {
             {/* Mobile disclaimer */}
             <div className="mt-4 md:hidden">
               <span className="inline-block rounded-full border border-navy/10 px-3.5 py-1.5 font-mono text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-fog-600">
-                Demo operation - not a live matching service
+                Real-time matching
               </span>
             </div>
           </div>

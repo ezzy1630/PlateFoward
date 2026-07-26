@@ -48,7 +48,7 @@ export function FooterCta() {
           </h2>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-fog/65 text-pretty md:text-[0.9375rem]">
             Try the full donation workflow. Photograph food, match with Santa
-            Cruz County recipients, and generate a demo offer token.
+            Cruz County recipients, and generate an offer token.
           </p>
 
           <Link
@@ -60,10 +60,10 @@ export function FooterCta() {
           </Link>
         </div>
 
-        {/* Demo recipients */}
+        {/* Recipients */}
         <div className="mt-14">
           <p className="mb-3 font-mono text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fog/35">
-            Demo recipient organizations
+            Recipient organizations
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {LANDING_RECIPIENTS.map((name) => (
@@ -82,10 +82,10 @@ export function FooterCta() {
       <footer className="mt-16 border-t border-fog/8 pt-6">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-2 px-4 text-center md:flex-row md:px-8">
           <span className="font-mono text-[0.625rem] text-fog/45">
-            PlateFoward Demo
+            PlateFoward
           </span>
           <span className="font-mono text-[0.625rem] text-fog/45">
-            Not a real food rescue operation. Demo purposes only.
+            Move good food forward
           </span>
         </div>
       </footer>

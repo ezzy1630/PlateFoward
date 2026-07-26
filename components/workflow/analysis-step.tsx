@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PencilLine, ArrowRight } from "@phosphor-icons/react";
 import { motion, useReducedMotion } from "motion/react";
@@ -66,8 +65,7 @@ export function AnalysisStep({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <Badge variant="demo">Demo operation</Badge>
-        <h2 className="mt-3 font-display text-xl font-bold text-navy">
+        <h2 className="font-display text-xl font-bold text-navy">
           Review extraction
         </h2>
         <p className="mt-1 text-sm text-fog-600">

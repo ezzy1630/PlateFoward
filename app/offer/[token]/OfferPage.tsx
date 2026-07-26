@@ -5,7 +5,6 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckCircle, XCircle, Clock, WarningCircle, CircleNotch } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
 import { getConvexUrl } from "@/lib/convex/client";
@@ -64,7 +63,6 @@ function OfferPageWithConvex({ token }: { token: string }) {
         <div className="flex flex-col items-center gap-4">
           <CircleNotch size={32} className="text-orange animate-spin" />
           <p className="text-navy font-medium">Loading offer...</p>
-          <Badge variant="demo">Demo operation</Badge>
         </div>
       </div>
     );
@@ -86,7 +84,6 @@ function OfferPageWithConvex({ token }: { token: string }) {
                 Return home
               </Button>
             </Link>
-            <Badge variant="demo">Demo operation</Badge>
           </CardContent>
         </Card>
       </div>
@@ -148,7 +145,6 @@ function OfferPageWithConvex({ token }: { token: string }) {
             <ArrowLeft size={18} />
             <span className="hidden sm:inline">PlateFoward</span>
           </Link>
-          <Badge variant="demo">Demo</Badge>
         </div>
       </header>
 
@@ -158,11 +154,6 @@ function OfferPageWithConvex({ token }: { token: string }) {
             <StatusIcon size={18} className={statusConfig.color} weight="fill" />
             <span className="font-medium text-sm">{statusConfig.label}</span>
           </div>
-          {offer.demoOnly && (
-            <Badge variant="demo" className="mt-2">
-              Demo operation
-            </Badge>
-          )}
         </div>
 
         <Card variant="elevated">
@@ -267,7 +258,7 @@ function OfferPageWithConvex({ token }: { token: string }) {
                   </div>
                 ) : (
                   <p className="text-xs text-fog-600">
-                    No more demo recipients available.
+                    No more recipients available.
                   </p>
                 )}
               </div>
@@ -285,7 +276,7 @@ function OfferPageWithConvex({ token }: { token: string }) {
         </Card>
 
         <p className="mt-6 text-center font-mono text-[0.625rem] text-fog-600">
-          * This is a demo operation. Not a real food safety or compliance system.
+          * Confirm pickup details directly with the donor.
         </p>
       </main>
     </div>
@@ -308,7 +299,6 @@ function OfferPageWithoutConvex({ token }: { token: string }) {
               Return home
             </Button>
           </Link>
-          <Badge variant="demo">Demo operation</Badge>
         </CardContent>
       </Card>
     </div>

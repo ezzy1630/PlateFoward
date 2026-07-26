@@ -58,7 +58,7 @@ export function Hero() {
             <ArrowRight size={20} weight="bold" className="hidden md:block" />
           </Link>
           <span className="font-mono text-[0.625rem] uppercase tracking-[0.16em] text-fog-600">
-            Free demo
+            Santa Cruz County
           </span>
         </div>
       </div>

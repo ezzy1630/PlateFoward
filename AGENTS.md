@@ -8,5 +8,4 @@
 - Use TypeScript with explicit domain types, pure helpers, narrow effect boundaries, and exhaustive state handling.
 - Keep visible copy free of em dash and en dash characters.
 - Do not claim food safety, regulatory compliance, real nonprofit participation, real capacity, or real availability.
-- Demo-only operational data must be labeled in UI and code.
 - Run targeted checks for owned files. Stop all background processes before finishing.

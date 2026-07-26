@@ -17,7 +17,7 @@ import {
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 
 /* ------------------------------------------------------------------ */
-/*  Demo data (honest seed values only)                                */
+/*  Sample seed values                                                 */
 /* ------------------------------------------------------------------ */
 
 const DEMO_RECIPIENTS = [
@@ -38,7 +38,7 @@ const DEMO_RECIPIENTS = [
     address: "205 Mora Street, Santa Cruz",
     score: 72,
     compatible: false,
-    reason: "Demo rule marked this recipient incompatible",
+    reason: "Recipient not accepting this category at this time",
   },
 ] as const;
 
@@ -48,21 +48,21 @@ const STAGES = [
     label: "Capture",
     icon: Camera,
     description:
-      "Photograph surplus food or load the demo sample. The AI analyzes the image to extract item details.",
+      "Photograph surplus food or load a sample. The AI analyzes the image to extract item details.",
   },
   {
     id: "analyze",
     label: "Analyze",
     icon: Brain,
     description:
-      "Demo AI identifies items, quantity, and condition from the image. For this demo: 30 individually wrapped turkey and vegetarian sandwiches.",
+      "The AI identifies items, quantity, and condition from the image. Sample case: 30 individually wrapped turkey and vegetarian sandwiches.",
   },
   {
     id: "review",
     label: "Review",
     icon: PencilLine,
     description:
-      "Review and edit the demo AI extraction. Adjust category, temperature, packaging, quantity, zip code, and pickup deadline.",
+      "Review and edit the AI extraction. Adjust category, temperature, packaging, quantity, zip code, and pickup deadline.",
   },
   {
     id: "confirm",
@@ -76,14 +76,14 @@ const STAGES = [
     label: "Match",
     icon: Handshake,
     description:
-      "The matcher evaluates demo recipients against the donation. Compatible recipients are scored and ranked. Incompatible ones show why.",
+      "The matcher evaluates recipients against the donation. Compatible recipients are scored and ranked. Incompatible ones show why.",
   },
   {
     id: "results",
     label: "Results",
     icon: CheckCircle,
     description:
-      "A demo offer token and QR code is generated for the top match. If the first recipient declines, the demo offer reroutes to the next best match.",
+      "An offer token and QR code is generated for the top match. If the first recipient declines, the offer reroutes to the next best match.",
   },
 ] as const;
 
@@ -105,8 +105,7 @@ function CapturePanel() {
             Sample loaded: 30 wrapped sandwiches
           </span>
           <span className="text-xs text-fog-600">
-            Demo image ready for AI analysis. Switch to the Analyze tab to see
-            results.
+            Sample loaded. Switch to the Analyze tab to see results.
           </span>
         </div>
       ) : (
@@ -120,13 +119,13 @@ function CapturePanel() {
             Load sample image
           </span>
           <span className="text-xs text-fog-600">
-            30 wrapped sandwiches, ready for demo analysis
+            30 wrapped sandwiches, ready for analysis
           </span>
         </button>
       )}
       <p className="text-xs text-fog-600">
-        Load the demo sample to see how the AI identifies items, quantities,
-        and condition from a food photograph.
+        Load the sample to see how the AI identifies items, quantities, and
+        condition from a food photograph.
       </p>
     </div>
   );
@@ -139,7 +138,7 @@ function AnalyzePanel() {
         <div className="flex items-center gap-2 border-b border-navy-100 pb-3">
           <Brain size={18} className="text-orange" />
           <span className="text-sm font-semibold text-navy">
-            Demo detection results
+            Detection results
           </span>
         </div>
 
@@ -230,8 +229,8 @@ function ConfirmPanel() {
         </label>
       ))}
       <p className="text-xs text-fog-600">
-        Safety confirmations must all be checked before the demo donation
-        enters the matching queue.
+        Safety confirmations must all be checked before the donation enters
+        the matching queue.
       </p>
     </div>
   );
@@ -275,8 +274,9 @@ function MatchPanel() {
         </div>
       ))}
       <p className="text-xs text-fog-600">
-        Three demo recipients evaluated. Two compatible (Second Harvest, Grey
-        Bears), one incompatible under the demo rules (St. Francis).
+        Three recipients evaluated. Two compatible (Second Harvest, Grey
+        Bears), one incompatible because St. Francis is not accepting this
+        category at this time.
       </p>
     </div>
   );
@@ -293,20 +293,20 @@ function ResultsPanel() {
         </div>
         <div className="flex-1 text-center md:text-left">
           <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 font-mono text-[0.625rem] font-semibold text-orange">
-            Demo offer token
+            Offer token
           </span>
           <p className="mt-2 text-sm font-semibold text-navy">
             Offer sent to Second Harvest Food Bank
           </p>
           <p className="mt-1 text-xs text-fog-600">
             The recipient scans the QR code to accept or decline. If declined
-            within the window, the demo offer automatically reroutes to Grey
+            within the window, the offer automatically reroutes to Grey
             Bears.
           </p>
         </div>
       </div>
       <p className="text-xs text-fog-600">
-        Each demo offer includes a unique token, expiration window, and status
+        Each offer includes a unique token, expiration window, and status
         tracking. Declines trigger automatic rerouting.
       </p>
     </div>

@@ -26,10 +26,6 @@ export function Nav() {
         </Link>
 
         <div className="flex items-center gap-2.5 md:gap-5">
-          <span className="hidden rounded-full border border-navy/15 px-2.5 py-1 font-mono text-[0.5625rem] font-semibold uppercase tracking-[0.12em] text-fog-600 sm:inline-block">
-            Santa Cruz demo
-          </span>
-
           <a
             href="#how-it-works"
             onClick={handleHowItWorks}

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, Tag, Thermometer, Package, Stack, CalendarCheck } from "@phosphor-icons/react";
 import { motion, useReducedMotion } from "motion/react";
 import { vibrate } from "@/lib/haptics";
@@ -152,8 +151,7 @@ export function ConfirmationStep({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <Badge variant="demo">Demo operation</Badge>
-        <h2 className="mt-3 font-display text-xl font-bold text-navy">
+        <h2 className="font-display text-xl font-bold text-navy">
           Confirm donation
         </h2>
         <p className="mt-1 text-sm text-fog-600">

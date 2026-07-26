@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Spinner } from "@phosphor-icons/react";
-import { Badge } from "@/components/ui/badge";
 import { motion, useReducedMotion } from "motion/react";
 
 interface MatchingStepProps {
@@ -10,7 +9,7 @@ interface MatchingStepProps {
 }
 
 const TRACE_LINES = [
-  "Scanning demo recipients...",
+  "Scanning recipients...",
   "Evaluating compatibility rules...",
   "Calculating scores...",
 ] as const;
@@ -44,8 +43,6 @@ export function MatchingStep({ onComplete }: MatchingStepProps) {
       role="status"
       aria-live="polite"
     >
-      <Badge variant="demo">Demo operation</Badge>
-
       <div className="relative h-10 w-10">
         {!reduce && (
           <motion.span

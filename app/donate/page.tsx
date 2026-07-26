@@ -159,7 +159,6 @@ function DonatePageContent({ mutations }: { mutations?: ConvexMutations }) {
             <ArrowLeft size={18} />
             <span className="hidden sm:inline">PlateFoward</span>
           </Link>
-          <Badge variant="demo">Demo</Badge>
         </div>
         <DonateProgress step={state.step} />
       </header>
@@ -297,7 +296,6 @@ function DonatePageContent({ mutations }: { mutations?: ConvexMutations }) {
 
         {state.step === "analyzing" && (
           <div className="flex flex-col items-center justify-center gap-4 py-16" role="status" aria-live="polite">
-            <Badge variant="demo">Demo operation</Badge>
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-orange border-t-transparent" />
             <div className="text-center">
               <h2 className="font-display text-lg font-semibold text-navy">
@@ -385,10 +383,10 @@ function DonatePageContent({ mutations }: { mutations?: ConvexMutations }) {
       <footer className="fixed bottom-0 left-0 right-0 border-t border-navy-100 bg-fog/90 backdrop-blur-md safe-area-inset">
         <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-2">
           <span className="font-mono text-[0.625rem] text-fog-600">
-            Demo only
+            PlateFoward
           </span>
           <span className="font-mono text-[0.625rem] text-fog-600">
-            Not a real food safety or compliance system
+            Move good food forward
           </span>
         </div>
       </footer>

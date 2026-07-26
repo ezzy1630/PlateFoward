@@ -25,13 +25,13 @@ const steps = [
     icon: MapPin,
     label: "Match",
     description:
-      "The matcher ranks demo recipients by category, window, and proximity.",
+      "The matcher ranks recipients by category, window, and proximity.",
   },
   {
     icon: Truck,
     label: "Deliver",
     description:
-      "Hand off with a demo offer code and follow status through pickup.",
+      "Hand off with an offer code and follow status through pickup.",
   },
 ];
 

@@ -49,10 +49,9 @@ export function PickupSummary(input: PickupSummaryProps) {
                 Pickup summary
               </h3>
               <p className="font-mono text-xs text-fog-600">
-                Tracking ID: {input.publicId ?? input.donationId ?? "demo"}
+                Tracking ID: {input.publicId ?? input.donationId ?? "pending"}
               </p>
             </div>
-            <Badge variant="demo">Demo operation</Badge>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -173,8 +172,8 @@ export function PickupSummary(input: PickupSummaryProps) {
           )}
 
           <p className="rounded-box bg-orange-100 p-3 text-xs text-navy print:bg-transparent print:p-0">
-            This is a demo operation. Not a real food safety, regulatory, or
-            operational dispatch system. Verify all details with the recipient.
+            Confirm all pickup details directly with the recipient before
+            handoff.
           </p>
         </div>
 

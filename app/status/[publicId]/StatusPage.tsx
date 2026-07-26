@@ -43,7 +43,6 @@ function StatusPageWithConvex({ publicId }: { publicId: string }) {
         <div className="flex flex-col items-center gap-4">
           <CircleNotch size={32} className="text-orange animate-spin" />
           <p className="text-navy font-medium">Loading status...</p>
-          <Badge variant="demo">Demo operation</Badge>
         </div>
       </div>
     );
@@ -64,7 +63,6 @@ function StatusPageWithConvex({ publicId }: { publicId: string }) {
                 Return home
               </Button>
             </Link>
-            <Badge variant="demo">Demo operation</Badge>
           </CardContent>
         </Card>
       </div>
@@ -89,7 +87,6 @@ function StatusPageWithConvex({ publicId }: { publicId: string }) {
             <ArrowLeft size={18} />
             <span className="hidden sm:inline">PlateFoward</span>
           </Link>
-          <Badge variant="demo">Demo</Badge>
         </div>
       </header>
 
@@ -103,11 +100,6 @@ function StatusPageWithConvex({ publicId }: { publicId: string }) {
             )}
             <span className="font-medium text-sm">{statusInfo.label}</span>
           </div>
-          {donation.demoOnly && (
-            <Badge variant="demo" className="mt-2">
-              Demo operation
-            </Badge>
-          )}
         </div>
 
         <Card variant="elevated">
@@ -155,7 +147,7 @@ function StatusPageWithConvex({ publicId }: { publicId: string }) {
                       <p className="text-sm font-semibold text-navy">{snapshot.name}</p>
                       <p className="text-xs text-fog-600">{snapshot.organization}</p>
                     </div>
-                    <Badge variant="demo">Rank #{snapshot.rank}</Badge>
+                    <Badge variant="warning">Rank #{snapshot.rank}</Badge>
                   </CardContent>
                 </Card>
               ))}
@@ -164,7 +156,7 @@ function StatusPageWithConvex({ publicId }: { publicId: string }) {
         )}
 
         <p className="mt-6 text-center font-mono text-[0.625rem] text-fog-600">
-          * This is a demo operation. Not a real food safety or compliance system.
+          * Confirm pickup details directly with the recipient.
         </p>
       </main>
     </div>
@@ -187,7 +179,6 @@ function StatusPageWithoutConvex({ publicId: _publicId }: { publicId: string }) 
               Return home
             </Button>
           </Link>
-          <Badge variant="demo">Demo operation</Badge>
         </CardContent>
       </Card>
     </div>
